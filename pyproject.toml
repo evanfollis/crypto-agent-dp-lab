@@ -1,0 +1,12 @@
+[tool.poetry]
+name = "crypto-agent-dp-lab"
+version = "0.0.1"
+description = ""
+authors = ["Evan <you@example.com>"]
+
+[tool.poetry.dependencies]
+python = "^3.11"
+
+[tool.poetry.group.dev.dependencies]
+black = "^24.4"
+isort = "^5.13"

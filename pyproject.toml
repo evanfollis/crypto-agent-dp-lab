@@ -1,12 +1,57 @@
 [tool.poetry]
 name = "crypto-agent-dp-lab"
-version = "0.0.1"
-description = ""
-authors = ["Evan <you@example.com>"]
+version = "0.1.0"
+description = "End-to-end DP & RL crypto platform"
+authors = ["Evan Follis <evan.follis@gmail.com>"]
+packages = [{ include = "crypto_dp", from = "src" }]
 
 [tool.poetry.dependencies]
 python = "^3.11"
+# core
+numpy = "^1.24"
+pandas = "^2.0"
+polars = "^0.20"
+duckdb = "^0.10"
+networkx = "^2.8"
+# AI stack
+jax = "^0.4.21"
+jaxlib = "^0.4.21"
+optax = "^0.1.7"
+equinox = "^0.11"
+# mock packages for dev
+requests = "^2.31"
 
 [tool.poetry.group.dev.dependencies]
+pytest = "^8.2"
 black = "^24.4"
-isort = "^5.13"
+ruff = "^0.4"
+pre-commit = "^3.7"
+isort = "^5.13.2"
+flake8 = "^7.0.0"
+mypy = "^1.8.0"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.black]
+line-length = 88
+target-version = ["py311"]
+include = '\.pyi?$'
+
+[tool.isort]
+profile = "black"
+line_length = 88
+multi_line_output = 3
+
+[tool.mypy]
+python_version = "3.11"
+strict = true
+warn_return_any = true
+warn_unused_configs = true
+
+[tool.pytest.ini_options]
+testpaths = ["src/tests"]
+python_files = ["test_*.py"]
+python_classes = ["Test*"]
+python_functions = ["test_*"]

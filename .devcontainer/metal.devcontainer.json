@@ -1,9 +1,0 @@
-{
-  "name": "metal",
-  "dockerFile": "metal.Dockerfile",
-  "runArgs": [],
-  "settings": {
-    "terminal.integrated.defaultProfile.linux": "bash"
-  },
-  "postCreateCommand": "poetry install --no-root --with dev"
-}

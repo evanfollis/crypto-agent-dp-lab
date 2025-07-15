@@ -17,7 +17,8 @@ jobs:
           - os: macos-14
             gpu: cuda
     runs-on: ${{ matrix.os }}
-    
+    env:
+      PATH: ${{ env.HOME }}/.local/bin:${{ env.PATH }}
     steps:
       - uses: actions/checkout@v4
 

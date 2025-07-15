@@ -1,17 +1,25 @@
 FROM ubuntu:jammy
 
-# Install Python 3.11 and essential tools
-RUN apt-get update && apt-get install -y --no-install-recommends \
-    python3.11 \
-    python3.11-dev \
-    python3.11-venv \
-    python3-pip \
-    curl \
-    git \
-    build-essential \
-    ca-certificates \
-    jq \
-    && rm -rf /var/lib/apt/lists/*
+# Set timezone to prevent interactive prompts
+ENV DEBIAN_FRONTEND=noninteractive
+ENV TZ=UTC
+
+# Install Python 3.11.8 and essential tools
+RUN apt-get update \
+ && apt-get install -y --no-install-recommends software-properties-common \
+ && add-apt-repository ppa:deadsnakes/ppa \
+ && apt-get update \
+ && apt-get install -y --no-install-recommends \
+        python3.11=3.11.8-1+jammy1 \
+        python3.11-dev=3.11.8-1+jammy1 \
+        python3.11-venv=3.11.8-1+jammy1 \
+        python3.11-distutils=3.11.8-1+jammy1 \
+        curl \
+        git \
+        build-essential \
+        ca-certificates \
+        jq \
+ && rm -rf /var/lib/apt/lists/*
 
 # Set Python 3.11 as default
 RUN update-alternatives --install /usr/bin/python python /usr/bin/python3.11 1 \

@@ -66,6 +66,8 @@ class TradingEnvironment:
     lookback_window: int = 100
     
     def __post_init__(self):
+        if not self.symbols:
+            raise ValueError("At least one symbol required")
         self.n_assets = len(self.symbols)
         self.reset()
     
@@ -329,12 +331,12 @@ class RiskManager:
             scale_factor = self.max_position_size / max_pos
             modified_positions *= scale_factor
         
-        # Check leverage
-        total_exposure = jnp.sum(jnp.abs(modified_positions))
-        if total_exposure > self.max_leverage:
-            warnings.append(f"Leverage too high: {total_exposure:.2f}x")
+        # Check leverage (sum of absolute position weights)
+        leverage_ratio = jnp.sum(jnp.abs(modified_positions))
+        if leverage_ratio > self.max_leverage:
+            warnings.append(f"Leverage too high: {leverage_ratio:.2f}x")
             # Scale down to max leverage
-            modified_positions *= self.max_leverage / total_exposure
+            modified_positions *= self.max_leverage / leverage_ratio
         
         # Check volatility
         if volatility > self.volatility_threshold:

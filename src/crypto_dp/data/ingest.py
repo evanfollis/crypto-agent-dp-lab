@@ -150,6 +150,7 @@ def load_to_duck(
         table: Table name
         mode: Load mode ('replace', 'append', 'upsert')
     """
+    con = None
     try:
         con = duckdb.connect(db_path)
         
@@ -176,7 +177,8 @@ def load_to_duck(
         logger.error(f"Failed to load data to {table}: {e}")
         raise
     finally:
-        con.close()
+        if con is not None:
+            con.close()
 
 
 def get_top_crypto_symbols(limit: int = 50) -> List[str]:

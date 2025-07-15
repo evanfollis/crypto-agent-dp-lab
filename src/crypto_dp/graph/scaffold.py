@@ -13,6 +13,7 @@ import jax
 import jax.numpy as jnp
 import networkx as nx
 import equinox as eqx
+import optax
 from jax import grad, jit, vmap
 
 
@@ -46,6 +47,9 @@ class LatentGraph(eqx.Module):
             activation: Activation function for message passing
             key: Random key for initialization
         """
+        if n_factors < 1:
+            raise ValueError("n_factors must be >= 1")
+            
         if key is None:
             key = jax.random.PRNGKey(42)
             
@@ -198,7 +202,8 @@ def graph_step(
         return bic_loss(model, x, target, lambda_reg) + spectral_regularization(model)
     
     loss, grads = eqx.filter_value_and_grad(loss_fn)(model)
-    model = eqx.apply_updates(model, grads, learning_rate)
+    updates, _ = optax.sgd(learning_rate).update(grads, None)
+    model = eqx.apply_updates(model, updates)
     
     return model, loss
 

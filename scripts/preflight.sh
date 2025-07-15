@@ -16,6 +16,7 @@ fi
 python -c "import sys; rc='rc' in sys.version; exit(0 if not rc else 1)" || {
     echo "⚠️  Python release candidate detected - some packages may fail to install"
     echo "   See PYTHON_VERSION_FIX.md for instructions"
+    exit 1
 }
 
 # Check Poetry is available

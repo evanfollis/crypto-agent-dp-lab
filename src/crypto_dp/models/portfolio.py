@@ -12,6 +12,7 @@ import logging
 import jax
 import jax.numpy as jnp
 import equinox as eqx
+import optax
 from jax import jit, grad, vmap
 
 
@@ -24,12 +25,12 @@ def softmax_weights(scores: jnp.ndarray, temperature: float = 10.0) -> jnp.ndarr
     
     Args:
         scores: Raw asset scores [n_assets]
-        temperature: Temperature parameter (higher = more concentrated)
+        temperature: Temperature parameter (higher = more uniform)
     
     Returns:
         Portfolio weights that sum to 1
     """
-    scaled_scores = scores * temperature
+    scaled_scores = scores / temperature
     # Numerical stability
     scaled_scores = scaled_scores - jnp.max(scaled_scores)
     weights = jnp.exp(scaled_scores)
@@ -359,7 +360,8 @@ def portfolio_step(
         return portfolio_objective(model, features, returns, old_weights, alpha, beta, gamma)
     
     loss, grads = eqx.filter_value_and_grad(objective_fn)(model)
-    model = eqx.apply_updates(model, grads, learning_rate)
+    updates, _ = optax.sgd(learning_rate).update(grads, None)
+    model = eqx.apply_updates(model, updates)
     
     # Generate weights with updated model
     weights = model(features)

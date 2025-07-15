@@ -22,6 +22,15 @@ repos:
         files: ^src/.*\.py$
         args: ["--max-line-length=88", "--extend-ignore=E203,W503"]
 
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.4.10
+    hooks:
+      - id: ruff
+        args: [--fix]
+        files: ^src/.*\.py$
+      - id: ruff-format
+        files: ^src/.*\.py$
+
   - repo: local
     hooks:
       - id: case-collision-lint
@@ -29,9 +38,3 @@ repos:
         entry: python3 -c "import os, sys; files = [f for f in sys.argv[1:] if os.path.isfile(f)]; lower_files = [f.lower() for f in files]; duplicates = [f for f in files if lower_files.count(f.lower()) > 1]; sys.exit(1 if duplicates else 0)"
         language: system
         files: ^src/.*
-      - id: format-check
-        name: Run format checks
-        entry: ./scripts/format_check.sh
-        language: system
-        pass_filenames: false
-        files: ^src/.*\.py$

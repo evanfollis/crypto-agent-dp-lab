@@ -112,6 +112,8 @@ class TestDuckDBOperations:
         """Test loading data to DuckDB with replace mode."""
         with tempfile.NamedTemporaryFile(suffix='.db', delete=False) as tmp_file:
             db_path = tmp_file.name
+        # Remove the empty file so DuckDB can create a new database
+        os.unlink(db_path)
         
         try:
             # Create test data

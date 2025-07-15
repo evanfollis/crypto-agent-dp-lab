@@ -43,12 +43,12 @@ class TestWeightTransformations:
         """Test temperature effect in softmax."""
         scores = jnp.array([1.0, 2.0, 3.0])
         
-        # High temperature should make weights more concentrated
+        # High temperature should make weights more uniform
         weights_high_temp = softmax_weights(scores, temperature=10.0)
         weights_low_temp = softmax_weights(scores, temperature=0.1)
         
-        # High temperature should be more concentrated (higher max weight)
-        assert jnp.max(weights_high_temp) > jnp.max(weights_low_temp)
+        # Low temperature should be more concentrated (higher max weight)
+        assert jnp.max(weights_low_temp) > jnp.max(weights_high_temp)
     
     def test_gumbel_softmax_weights(self):
         """Test Gumbel-softmax weight transformation."""

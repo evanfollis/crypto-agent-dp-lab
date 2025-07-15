@@ -20,6 +20,9 @@ optax = "^0.1.7"
 equinox = "^0.11"
 # mock packages for dev
 requests = "^2.31"
+ccxt = "^4.4.94"
+pycoingecko = "^3.2.0"
+pyarrow = "^20.0.0"
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^8.2"

@@ -29,9 +29,9 @@ jobs:
           cache: "poetry"
 
       - name: Install Poetry
-        run: |
-          pip install --user poetry
-          echo "$HOME/.local/bin" >> $GITHUB_PATH
+        uses: snok/install-poetry@v1
+        with:
+          version: 1.8.2        # keep in sync with dev-containers
 
       - name: Install deps
         run: |

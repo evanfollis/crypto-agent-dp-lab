@@ -1,0 +1,22 @@
+{
+  "name": "crypto-dp-lab-metal",
+  "dockerFile": "Dockerfile",
+  "runArgs": [],
+  "customizations": {
+    "vscode": {
+      "settings": {
+        "terminal.integrated.defaultProfile.linux": "bash",
+        "python.defaultInterpreterPath": "/usr/bin/python3.11"
+      },
+      "extensions": [
+        "ms-python.python",
+        "ms-python.vscode-pylance"
+      ]
+    }
+  },
+  "mounts": [
+    "source=/opt/data,target=/opt/data,type=bind"
+  ],
+  "remoteUser": "developer",
+  "postCreateCommand": "curl -fsSL https://claude.ai/install.sh | bash && echo 'Claude Code installed' && mkdir -p ~/.config/claude && echo '{\"theme\":\"dark\",\"colorblind_friendly\":true,\"account_type\":\"claude\",\"default_settings\":true,\"trust_files\":true,\"editor\":\"vscode\"}' > ~/.config/claude/config.json && echo 'Claude Code pre-configured' || echo 'Claude Code setup failed'"
+}

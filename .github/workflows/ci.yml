@@ -1,0 +1,88 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+jobs:
+  test:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [macos-14, ubuntu-22.04]
+        gpu: [cpu, cuda]
+        exclude:
+          # CUDA only available on Linux
+          - os: macos-14
+            gpu: cuda
+    runs-on: ${{ matrix.os }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      # stable Python 3.11.x across all jobs
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11.8"
+          cache: "poetry"
+
+      - name: Install Poetry
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install "poetry==1.8.2"
+          echo "$HOME/.local/bin" >> $GITHUB_PATH
+
+      - name: Install deps
+        run: |
+          poetry install --with dev --no-interaction
+          echo "PYTHON=$(python -V)"
+
+      # run unit tests
+      - name: pytest
+        run: poetry run pytest src/tests/ -v --tb=short
+
+      # crypto smoke import (CPU only to keep CI cheap)
+      - name: Crypto module import
+        if: matrix.gpu == 'cpu'
+        run: |
+          poetry run python - <<'PY'
+          import jax, numpy as np
+          from crypto_dp.graph.scaffold import LatentGraph
+          from crypto_dp.models.portfolio import softmax_weights
+          from crypto_dp.rl.agent import CryptoTradingAgent
+          
+          # Test basic functionality
+          key = jax.random.PRNGKey(42)
+          graph = LatentGraph(5, key=key)
+          x = np.random.randn(5)
+          y = graph(jax.numpy.array(x))
+          print("✅ JAX graph forward OK, shape:", y.shape)
+          
+          # Test portfolio weights
+          scores = jax.numpy.array([1.0, 2.0, 3.0])
+          weights = softmax_weights(scores)
+          print("✅ Portfolio weights OK, sum:", float(jax.numpy.sum(weights)))
+          
+          # Test agent creation
+          agent = CryptoTradingAgent(10, 3, key=key)
+          print("✅ RL agent initialized OK")
+          PY
+
+      # GPU smoke (only on Linux with CUDA)
+      - name: CUDA smoke
+        if: matrix.gpu == 'cuda' && matrix.os == 'ubuntu-22.04'
+        run: |
+          nvidia-smi || echo "nvidia-smi not available"
+          poetry run python -c "import torch, sys; print('CUDA available:', torch.cuda.is_available())"
+
+      # run pre-commit hooks
+      - name: Run pre-commit hooks
+        run: |
+          poetry run pre-commit install
+          poetry run pre-commit run --all-files
+
+      # run preflight as final gate (after deps are in place)
+      - name: Pre-flight
+        run: ./scripts/preflight.sh

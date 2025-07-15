@@ -1,0 +1,1 @@
+# Latent graph scaffold module

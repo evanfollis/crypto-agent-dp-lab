@@ -33,12 +33,7 @@ jobs:
           python -m pip install --upgrade pip
           python -m pip install "poetry==1.8.2"
           # Add Poetry's bin path to PATH for all OSes
-          if [ -d "$HOME/.local/bin" ]; then
-            echo "$HOME/.local/bin" >> $GITHUB_PATH
-          fi
-          if [ -d "$HOME/Library/Python/3.11/bin" ]; then
-            echo "$HOME/Library/Python/3.11/bin" >> $GITHUB_PATH
-          fi
+          export PATH="$HOME/.local/bin:$PATH"
           which poetry || true
           poetry --version || true
 

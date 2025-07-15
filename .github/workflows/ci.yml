@@ -32,7 +32,15 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           python -m pip install "poetry==1.8.2"
-          echo "$HOME/.local/bin" >> $GITHUB_PATH    # ensure poetry is on PATH
+          # Add Poetry's bin path to PATH for all OSes
+          if [ -d "$HOME/.local/bin" ]; then
+            echo "$HOME/.local/bin" >> $GITHUB_PATH
+          fi
+          if [ -d "$HOME/Library/Python/3.11/bin" ]; then
+            echo "$HOME/Library/Python/3.11/bin" >> $GITHUB_PATH
+          fi
+          which poetry || true
+          poetry --version || true
 
       - name: Install deps
         run: |

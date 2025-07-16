@@ -5,6 +5,11 @@ def export_to_json(root_dir, out_file):
     data = {}
     for dirpath, _, filenames in os.walk(root_dir):
         for fname in filenames:
+            if fname in ["export_to_json.py", "README.md", "LICENSE", "CHANGELOG.md", "requirements.txt", "setup.py", 
+                         "poetry.lock", "crypto-agent-dp-lab.json", ".gitignore",]:
+                continue
+            if ".git" in dirpath or ".pytest" in dirpath:
+                continue
             full = os.path.join(dirpath, fname)
             rel = os.path.relpath(full, root_dir)
             try:

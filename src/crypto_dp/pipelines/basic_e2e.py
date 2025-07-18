@@ -349,29 +349,23 @@ def train_e2e_pipeline(config: TrainingConfig) -> Tuple[EndToEndDPPipeline, Dict
     for step in range(config.n_steps):
         key, subkey = jax.random.split(key)
         
-        # Generate batch of market states
-        batch_returns = []
+        # Generate batch of market states and simulation keys (stored for reuse)
+        batch_market_states = []
+        batch_sim_keys = []
         
-        for _ in range(config.batch_size):
+        for i in range(config.batch_size):
             key, data_key, sim_key = jax.random.split(key, 3)
             
             # Generate market state
             market_state = generate_synthetic_market_data(100, config.n_assets, data_key)
-            
-            # Forward pass
-            portfolio_return, _ = pipeline(market_state, sim_key)
-            batch_returns.append(portfolio_return)
-        
-        # Compute loss over batch
-        batch_returns = jnp.array(batch_returns)
+            batch_market_states.append(market_state)
+            batch_sim_keys.append(sim_key)
         
         def loss_fn(pipe):
-            # Re-run forward passes for gradient computation
+            # Use the same batch data for gradient computation
             returns = []
-            for i in range(config.batch_size):
-                key_i = jax.random.fold_in(subkey, i)
-                market_state = generate_synthetic_market_data(100, config.n_assets, key_i)
-                ret, _ = pipe(market_state, key_i)
+            for market_state, sim_key in zip(batch_market_states, batch_sim_keys):
+                ret, _ = pipe(market_state, sim_key)
                 returns.append(ret)
             
             returns = jnp.array(returns)

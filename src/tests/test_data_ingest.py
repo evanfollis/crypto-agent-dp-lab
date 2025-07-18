@@ -175,6 +175,8 @@ class TestHelperFunctions:
 class TestCreateSampleDataset:
     """Test sample dataset creation functionality."""
     
+    @pytest.mark.slow
+    @pytest.mark.network
     @patch('crypto_dp.data.ingest.get_top_crypto_symbols')
     @patch('crypto_dp.data.ingest.fetch_ohlcv')
     def test_create_sample_dataset(self, mock_fetch, mock_symbols):

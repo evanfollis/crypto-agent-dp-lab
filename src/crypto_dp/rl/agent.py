@@ -85,14 +85,21 @@ class TradingEnvironment:
         # Placeholder - in practice, would fetch real market data
         prices = jnp.ones(self.n_assets)  # Dummy prices
         features = jnp.zeros(20)          # Dummy features
-        portfolio_weights = self.positions / jnp.sum(jnp.abs(self.positions) + 1e-8)
+        
+        # Calculate portfolio weights, handling zero positions case
+        total_abs_position = jnp.sum(jnp.abs(self.positions))
+        portfolio_weights = jnp.where(
+            total_abs_position < 1e-8,
+            jnp.zeros_like(self.positions),  # All zeros if no positions
+            self.positions / total_abs_position
+        )
         
         return MarketState(
             prices=prices,
             features=features,
             portfolio=portfolio_weights,
             cash=self.cash,
-            timestamp=time.time()
+            timestamp=float(self.step_count)  # Use step count for deterministic timestamps
         )
     
     def step(self, action: TradingAction) -> Tuple[MarketState, float, bool, Dict[str, Any]]:
@@ -115,12 +122,28 @@ class TradingEnvironment:
         # Calculate slippage (simplified)
         slippage = jnp.sum(position_change) * self.slippage_rate
         
+        # Store previous portfolio value for P&L calculation
+        prev_portfolio_value = self.portfolio_value
+        
         # Update positions
         self.positions = new_positions
         
-        # Calculate reward (placeholder - would use actual P&L)
-        # For now, use negative of costs as immediate reward
-        reward = -(transaction_cost + slippage)
+        # Simulate price changes (simple GBM for now)
+        # In practice, this would use real market data
+        # Use deterministic seed based on step count for reproducibility
+        price_returns = jax.random.normal(
+            jax.random.PRNGKey(42 + self.step_count), 
+            (self.n_assets,)
+        ) * 0.01  # 1% daily volatility
+        
+        # Calculate portfolio P&L
+        portfolio_pnl = jnp.sum(self.positions * price_returns) * prev_portfolio_value
+        
+        # Update portfolio value
+        self.portfolio_value = prev_portfolio_value + portfolio_pnl - transaction_cost - slippage
+        
+        # Calculate reward: P&L minus transaction costs
+        reward = portfolio_pnl - transaction_cost - slippage
         
         # Update cash (simplified)
         self.cash -= transaction_cost + slippage
@@ -238,7 +261,9 @@ class CryptoTradingAgent(eqx.Module):
         else:
             # Stochastic action (for exploration)
             if key is None:
-                key = jax.random.PRNGKey(int(time.time()))
+                # Use a deterministic fallback based on state hash for reproducibility
+                state_hash = hash(tuple(state.flatten())) % (2**31)
+                key = jax.random.PRNGKey(state_hash)
             
             noise = jax.random.normal(key, raw_scores.shape) * 0.1
             noisy_scores = raw_scores + noise
@@ -253,7 +278,7 @@ class CryptoTradingAgent(eqx.Module):
         return TradingAction(
             positions=positions,
             confidence=confidence,
-            timestamp=time.time()
+            timestamp=0.0  # Use deterministic timestamp for reproducibility
         )
     
     def get_value(self, state: jnp.ndarray) -> float:
@@ -284,7 +309,7 @@ class RiskManager:
         # Risk state tracking
         self.peak_portfolio_value = 100000.0
         self.daily_start_value = 100000.0
-        self.last_reset_time = time.time()
+        self.last_reset_time = 0.0  # Use deterministic reset time
     
     def check_risk_limits(
         self,

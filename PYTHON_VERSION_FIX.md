@@ -1,61 +1,60 @@
-# Python Version Compatibility Fix Required
+# Python Version Compatibility Fix Applied
 
-## Current Issue
+## Previous Issue
 
-This container is running Python 3.11.0rc1 (release candidate), which is incompatible with many modern packages that require Python >=3.11. The RC version is considered "older" than the stable 3.11 release by Python's PEP 440 versioning rules.
+The devcontainers were installing Python 3.11.0rc1 (release candidate) from the Ubuntu deadsnakes PPA, which was incompatible with many modern packages that require Python >=3.11. The RC version is considered "older" than the stable 3.11 release by Python's PEP 440 versioning rules.
 
-## Impact
+## Applied Fix
 
-The following packages cannot be installed with Python 3.11.0rc1:
-- NetworkX >=3.2 
-- SciPy >=1.12
-- JAX >=0.4.26
-- Many other modern packages
+Both `.devcontainer/cuda/Dockerfile` and `.devcontainer/metal/Dockerfile` have been updated to build Python 3.11.10 from source. This ensures a stable, consistent Python version across all development environments.
 
-## Required Fix
+### Changes Made:
 
-To use the full crypto DP stack, you need to update to a stable Python 3.11.x version:
+1. **Removed apt package installation of python3.11** (which was installing RC version)
+2. **Added Python 3.11.10 source build** with optimization flags
+3. **Updated pip installation** to use the built-in pip from Python's ensurepip
 
-### Option 1: Update Dev Container
-In `.devcontainer/metal/Dockerfile`:
+### Key Dockerfile Changes:
 ```dockerfile
-# Replace:
-RUN conda install -y python=3.11
-
-# With:
-RUN conda install -y python=3.11.8
+# Build Python 3.11.10 from source to ensure we get a stable version
+RUN cd /tmp \
+ && wget https://www.python.org/ftp/python/3.11.10/Python-3.11.10.tgz \
+ && tar -xzf Python-3.11.10.tgz \
+ && cd Python-3.11.10 \
+ && ./configure --enable-optimizations --with-ensurepip=install \
+ && make -j$(nproc) \
+ && make altinstall \
+ && cd / \
+ && rm -rf /tmp/Python-3.11.10*
 ```
 
-### Option 2: Use GitHub Actions CI
-The CI workflow has been configured to use Python 3.11.8:
-```yaml
-- name: Set up Python
-  uses: actions/setup-python@v5
-  with:
-    python-version: "3.11.8"
-```
+## Next Steps
 
-### Option 3: Local Development
-```bash
-# macOS with Homebrew
-brew install python@3.11
-brew unlink python@3.12
-brew link --overwrite python@3.11
+1. **Rebuild the devcontainer**:
+   - In VS Code: Command Palette → "Dev Containers: Rebuild Container"
+   - Or manually: `docker-compose down && docker-compose up --build`
 
-# Or use pyenv
-pyenv install 3.11.8
-pyenv local 3.11.8
-```
+2. **Verify Python version**:
+   ```bash
+   python --version  # Should show: Python 3.11.10
+   ```
 
-## Temporary Workaround
+3. **Reinstall dependencies**:
+   ```bash
+   poetry lock --no-update
+   poetry install --with dev
+   ```
 
-Until the Python version is updated, the project uses older package versions that are compatible with Python 3.11.0rc1. Once you update to Python 3.11.8+, update `pyproject.toml` with the recommended versions from the build instructions.
+## Benefits
 
-## Verification
+- All modern packages (JAX >=0.4.26, NetworkX >=3.2, SciPy >=1.12) can now be installed
+- Consistent Python version across all environments
+- Optimized Python build for better performance
+- No dependency on external PPAs that might change
 
-After updating Python, verify with:
-```bash
-python --version  # Should show 3.11.8 or higher (not rc1)
-poetry lock --no-update
-poetry install --with dev
-```
+## Alternative Approaches
+
+If building from source takes too long, consider these alternatives:
+1. Use the official Python Docker image as a base layer
+2. Use pyenv inside the container
+3. Use a different PPA with stable Python versions

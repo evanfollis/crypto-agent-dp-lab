@@ -154,20 +154,23 @@ def load_to_duck(
     try:
         con = duckdb.connect(db_path)
         
+        # Register the DataFrame with DuckDB so it can be referenced in SQL
+        con.register("temp_df", df)
+        
         if mode == "replace":
             con.execute(f"DROP TABLE IF EXISTS {table}")
-            con.execute(f"CREATE TABLE {table} AS SELECT * FROM df")
+            con.execute(f"CREATE TABLE {table} AS SELECT * FROM temp_df")
         elif mode == "append":
-            con.execute(f"INSERT INTO {table} SELECT * FROM df")
+            con.execute(f"INSERT INTO {table} SELECT * FROM temp_df")
         elif mode == "upsert":
             # Simple upsert based on timestamp and symbol
             con.execute(f"""
                 INSERT INTO {table} 
-                SELECT * FROM df 
+                SELECT * FROM temp_df 
                 WHERE NOT EXISTS (
                     SELECT 1 FROM {table} t2 
-                    WHERE t2.timestamp = df.timestamp 
-                    AND t2.symbol = df.symbol
+                    WHERE t2.timestamp = temp_df.timestamp 
+                    AND t2.symbol = temp_df.symbol
                 )
             """)
         

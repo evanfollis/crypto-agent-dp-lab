@@ -1,0 +1,14 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(ls:*)",
+      "Bash(poetry install:*)",
+      "Bash(poetry lock:*)",
+      "Bash(poetry run:*)",
+      "Bash(./scripts/preflight.sh:*)",
+      "Bash(find:*)",
+      "Bash(python3.11:*)"
+    ],
+    "deny": []
+  }
+}

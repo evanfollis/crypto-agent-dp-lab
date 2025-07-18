@@ -2,19 +2,32 @@ FROM nvidia/cuda:12.8.0-devel-ubuntu22.04
 
 ENV DEBIAN_FRONTEND=noninteractive TZ=UTC
 RUN apt-get -o Acquire::Retries=3 update \
- && apt-get install -y --no-install-recommends software-properties-common \
+ && apt-get install -y --no-install-recommends software-properties-common wget \
  && add-apt-repository -y ppa:deadsnakes/ppa \
  && apt-get -o Acquire::Retries=3 update \
  && apt-get install -y --no-install-recommends \
-        python3.11 python3.11-dev python3.11-venv python3.11-distutils \
         curl git build-essential ca-certificates jq \
+        libssl-dev zlib1g-dev libbz2-dev libreadline-dev libsqlite3-dev \
+        libncursesw5-dev xz-utils tk-dev libxml2-dev libxmlsec1-dev libffi-dev liblzma-dev \
  && rm -rf /var/lib/apt/lists/*
 
-RUN update-alternatives --install /usr/bin/python python /usr/bin/python3.11 1 \
- && update-alternatives --install /usr/bin/python3 python3 /usr/bin/python3.11 1
+# Build Python 3.11.10 from source to ensure we get a stable version
+RUN cd /tmp \
+ && wget https://www.python.org/ftp/python/3.11.10/Python-3.11.10.tgz \
+ && tar -xzf Python-3.11.10.tgz \
+ && cd Python-3.11.10 \
+ && ./configure --enable-optimizations --with-ensurepip=install \
+ && make -j$(nproc) \
+ && make altinstall \
+ && cd / \
+ && rm -rf /tmp/Python-3.11.10*
 
-# pip (optional: use `apt-get install python3-pip` instead)
-RUN curl -sS https://bootstrap.pypa.io/get-pip.py | python3.11
+RUN update-alternatives --install /usr/bin/python python /usr/local/bin/python3.11 1 \
+ && update-alternatives --install /usr/bin/python3 python3 /usr/local/bin/python3.11 1
+
+# pip is already installed with Python 3.11.10 via --with-ensurepip
+# Just ensure pip is up to date
+RUN python3.11 -m pip install --upgrade pip
 
 ENV POETRY_HOME=/opt/poetry PATH="$POETRY_HOME/bin:$PATH"
 RUN curl -sSL https://install.python-poetry.org | python3 -

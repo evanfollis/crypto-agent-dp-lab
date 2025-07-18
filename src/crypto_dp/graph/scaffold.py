@@ -180,32 +180,34 @@ def spectral_regularization(model: LatentGraph, alpha: float = 1e-3) -> jnp.ndar
 @jit
 def graph_step(
     model: LatentGraph,
+    opt_state: optax.OptState,
     x: jnp.ndarray,
     target: jnp.ndarray,
-    learning_rate: float = 1e-3,
+    optimizer: optax.GradientTransformation,
     lambda_reg: float = 1e-2
-) -> Tuple[LatentGraph, jnp.ndarray]:
+) -> Tuple[LatentGraph, optax.OptState, jnp.ndarray]:
     """
     Single optimization step for the latent graph.
     
     Args:
         model: Current LatentGraph model
+        opt_state: Current optimizer state
         x: Input features
         target: Target values
-        learning_rate: Learning rate for gradient descent
+        optimizer: Optax optimizer
         lambda_reg: Regularization strength
     
     Returns:
-        Updated model and loss value
+        Updated model, updated optimizer state, and loss value
     """
     def loss_fn(model):
         return bic_loss(model, x, target, lambda_reg) + spectral_regularization(model)
     
     loss, grads = eqx.filter_value_and_grad(loss_fn)(model)
-    updates, _ = optax.sgd(learning_rate).update(grads, None)
+    updates, opt_state = optimizer.update(grads, opt_state)
     model = eqx.apply_updates(model, updates)
     
-    return model, loss
+    return model, opt_state, loss
 
 
 def train_graph(
@@ -238,6 +240,10 @@ def train_graph(
     Returns:
         Trained model and training history
     """
+    # Initialize optimizer
+    optimizer = optax.sgd(learning_rate)
+    opt_state = optimizer.init(eqx.filter(model, eqx.is_array))
+    
     history = {
         'train_loss': [],
         'val_loss': [],
@@ -250,8 +256,8 @@ def train_graph(
     
     for epoch in range(n_epochs):
         # Training step
-        model, train_loss = graph_step(
-            model, x_train, y_train, learning_rate, lambda_reg
+        model, opt_state, train_loss = graph_step(
+            model, opt_state, x_train, y_train, optimizer, lambda_reg
         )
         
         history['train_loss'].append(float(train_loss))

@@ -170,6 +170,7 @@ class EnhancedGradientMonitor:
             parts.append(prefix)
             
         for key in path:
+            # Handle both old and new JAX path formats
             if hasattr(key, 'key'):
                 parts.append(str(key.key))
             else:

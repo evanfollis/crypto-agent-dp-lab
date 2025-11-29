@@ -1,5 +1,6 @@
 # Crypto Agent DP Lab
 
+#### Part of my broader AI-native research ecosystem. This repo explores systematic trading using the same design principles as SynaPlex.
 A research platform for **End-to-End Differentiable Programming (E2E-DP)** applied to algorithmic trading, with hybrid neuro-symbolic architecture.
 
 ## 🎯 Project Vision

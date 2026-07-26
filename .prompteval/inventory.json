@@ -1,0 +1,23 @@
+{
+  "enforce": true,
+  "note": "The archive charter is the only current behavior-shaping prompt.",
+  "prompts": [
+    {
+      "file": "AGENTS.md",
+      "id": "crypto-dp-archive-charter",
+      "status": "governed"
+    },
+    {
+      "file": "CLAUDE.md",
+      "id": null,
+      "status": "not-a-prompt",
+      "note": "Thin compatibility pointer to the governed AGENTS.md; it carries no independent policy."
+    },
+    {
+      "file": "docs/historical-research-plan.md",
+      "id": null,
+      "status": "not-a-prompt",
+      "note": "Frozen historical research plan preserved as data, not current operating authority."
+    }
+  ]
+}

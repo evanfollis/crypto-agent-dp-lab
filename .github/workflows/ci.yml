@@ -1,98 +1,18 @@
-name: CI
+name: Archive integrity
 
 on:
   push:
-    branches: [ main, dev ]
+    branches: [main]
   pull_request:
-    branches: [ main, dev ]
-  schedule:
-    - cron: '0 2 * * *'  # Nightly at 2 AM UTC
+    branches: [main]
+
+permissions:
+  contents: read
 
 jobs:
-  lint:
-    runs-on: ubuntu-22.04
+  check:
+    runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v4
-    
-    - name: Set up Python 3.11
-      uses: actions/setup-python@v5
-      with:
-        python-version: "3.11.10"
-        cache: "poetry"
-    
-    - name: Install Poetry
-      run: |
-        python -m pip install --upgrade pip
-        python -m pip install "poetry==1.8.2"
-        echo "$HOME/.local/bin" >> $GITHUB_PATH
-    
-    - name: Install dependencies
-      run: |
-        poetry install --with dev --no-interaction
-        echo "PYTHON=$(python -V)"
-    
-    - name: Run preflight checks
-      run: |
-        chmod +x scripts/preflight.sh
-        ./scripts/preflight.sh
-    
-    - name: Run pre-commit hooks
-      run: |
-        poetry run pre-commit install
-        poetry run pre-commit run --all-files
-
-  unit:
-    runs-on: ubuntu-22.04
-    needs: lint
-    steps:
-    - uses: actions/checkout@v4
-    
-    - name: Set up Python 3.11
-      uses: actions/setup-python@v5
-      with:
-        python-version: "3.11.10"
-        cache: "poetry"
-    
-    - name: Install Poetry
-      run: |
-        python -m pip install --upgrade pip
-        python -m pip install "poetry==1.8.2"
-        echo "$HOME/.local/bin" >> $GITHUB_PATH
-    
-    - name: Install dependencies
-      run: |
-        poetry install --with dev --no-interaction
-    
-    - name: Run momentum test
-      run: |
-        python momentum_test.py
-    
-    - name: Run fast unit tests
-      run: |
-        poetry run pytest -m "not slow and not network and not integration" -q || true
-
-  integration-nightly:
-    runs-on: ubuntu-22.04
-    if: github.event_name == 'schedule'
-    steps:
-    - uses: actions/checkout@v4
-    
-    - name: Set up Python 3.11
-      uses: actions/setup-python@v5
-      with:
-        python-version: "3.11.10"
-        cache: "poetry"
-    
-    - name: Install Poetry
-      run: |
-        python -m pip install --upgrade pip
-        python -m pip install "poetry==1.8.2"
-        echo "$HOME/.local/bin" >> $GITHUB_PATH
-    
-    - name: Install dependencies
-      run: |
-        poetry install --with dev --no-interaction
-    
-    - name: Run network integration tests
-      run: |
-        poetry run pytest -m "integration and network" -q
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+      - name: Verify archive contract
+        run: make check

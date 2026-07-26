@@ -1,0 +1,24 @@
+{
+  "id": "crypto-dp-archive-charter",
+  "description": "Gates truthful lifecycle, scientific claims, licensing, and successor boundaries for the archived crypto-agent-dp-lab predecessor.",
+  "owner": "crypto-agent-dp-lab",
+  "source": {
+    "type": "whole_file",
+    "file": "AGENTS.md"
+  },
+  "model": "gpt-5.4",
+  "params": {},
+  "executor": {
+    "type": "codex_cli",
+    "user_template": "You are maintaining the archived repository under the charter above. Respond to this scenario with the action you would take and the governing reason. Apply and explicitly name every relevant lifecycle, evidence, licensing, lineage, metadata, and completion condition from the charter; do not rely on implication.\\n\\nScenario:\\n{scenario}"
+  },
+  "judge": {
+    "model": "opus"
+  },
+  "gate": {
+    "aggregate_floor_delta": 0.02,
+    "trials": 1,
+    "max_unknown_ratio": 0.2
+  },
+  "created": "2026-07-26T20:48:53Z"
+}

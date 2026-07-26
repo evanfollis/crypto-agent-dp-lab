@@ -1,0 +1,12 @@
+schema_version = 1
+name = "crypto-agent-dp-lab"
+shape = "library"
+lifecycle = "archived"
+agentic_risk = "none"
+canonical_repository = "https://github.com/evanfollis/crypto-agent-dp-lab"
+
+[artifacts]
+authoritative = ["src", "experiments", "pyproject.toml"]
+runtime = []
+generated = []
+historical = ["docs"]
